@@ -20,7 +20,7 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            FROM_TO: [CommandHandler('from_to_address', from_to_address)],
+            FROM_TO: [CommandHandler('from_to_address', from_to_yandex)],
             # LOCATION: [RegexHandler('^(Геолокация)$')]
         },
 
@@ -46,7 +46,7 @@ def cancel(bot, update):
 
 # Вызывается после /start
 # Пример вызова /from_to_address 55.787875, 37.600884, 55.696461, 37.771516
-def from_to_address(bot, update):
+def from_to_yandex(bot, update):
     command = update.message.text.replace(',', '')
     arg = command.split()[1:]
     add1 = float(arg[0])
@@ -61,18 +61,10 @@ def from_to_address(bot, update):
     update.message.reply_text('Price: {}'.format(price_name))
 
 
-def to_address(bot, update):
-    update.message.reply_text('Проверка2!')
+def from_to_uber(bot, update):
+    command = update.message.reply_text.replace(',', '')
+    arg = command.split()[1:]
     pass
-
-# Кнопки не работают
-# def my_keyboard():
-#    address1 = KeyboardButton('Начальный адрес')
-#    address2 = KeyboardButton('Конечный адрес')
-#    my_keyboard = ReplyKeyboardMarkup([
-#        [address1, address2]
-#    ], resize_keyboard=True)
-#    return my_keyboard
 
 
 # Вызываем функцию - эта строчка собственно запускает бота
