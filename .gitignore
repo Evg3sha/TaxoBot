@@ -3,3 +3,4 @@
 *.log
 .env/
 settings.py
+.DS_Store
