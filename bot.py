@@ -5,6 +5,7 @@ import logging
 
 import settings
 import yataxi
+import utaxi
 
 logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Tax_o_Bot.log')
 
@@ -20,7 +21,7 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            FROM_TO: [CommandHandler('from_to_address', from_to_yandex)],
+            FROM_TO: [CommandHandler('from_to_address', from_to_uber)],
             # LOCATION: [RegexHandler('^(Геолокация)$')]
         },
 
@@ -44,17 +45,25 @@ def cancel(bot, update):
     return ConversationHandler.END
 
 
+def arg(list):
+    add1 = float(list[0])
+    add2 = float(list[1])
+    add3 = float(list[2])
+    add4 = float(list[3])
+    return add1, add2, add3, add4
+
+
 # Вызывается после /start
 # Пример вызова /from_to_address 55.787875, 37.600884, 55.696461, 37.771516
 def from_to_yandex(bot, update):
     command = update.message.text.replace(',', '')
-    arg = command.split()[1:]
-    add1 = float(arg[0])
-    add2 = float(arg[1])
-    add3 = float(arg[2])
-    add4 = float(arg[3])
-    # Передаем агрументы в yataxi.get_ride_cost
-    info = yataxi.get_ride_cost(add1, add2, add3, add4)
+    command = command.split()[1:]
+    add = arg(command)
+    ll1 = add[0]
+    ll2 = add[1]
+    ll3 = add[2]
+    ll4 = add[3]
+    info = yataxi.get_ride_cost(ll1, ll2, ll3, ll4)
     price = info['options']
     for pri in price:
         price_name = pri['price']
@@ -62,9 +71,16 @@ def from_to_yandex(bot, update):
 
 
 def from_to_uber(bot, update):
-    command = update.message.reply_text.replace(',', '')
-    arg = command.split()[1:]
-    pass
+    command = update.message.text.replace(',', '')
+    command = command.split()[1:]
+    add = arg(command)
+    ll1 = add[0]
+    ll2 = add[1]
+    ll3 = add[2]
+    ll4 = add[3]
+    info = utaxi.get_ride_cost(ll1, ll2, ll3, ll4)
+    price = info['prices'][1]
+    update.message.reply_text('Price: {}'.format(price['estimate']))
 
 
 # Вызываем функцию - эта строчка собственно запускает бота

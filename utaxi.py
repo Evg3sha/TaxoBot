@@ -21,12 +21,11 @@ def get_ride_cost(lat_from, long_from, lat_to, long_to):
     response = client.get_price_estimates(lat_from, long_from, lat_to, long_to)
     return response.json
 
-
 # 40.730209, -73.979612, 55.696461, 37.771516
-info = get_region_info(40.730209, -73.979612)
-products = info['products'][1]
-print(products['upfront_fare_enabled'])
+# info = get_region_info(40.730209, -73.979612)
+# products = info['products'][1]
+# print(products['upfront_fare_enabled'])
 
-info2 = get_ride_cost(42.384316, -83.101800, 42.421465, -83.270715)
-price = info2['prices'][1]
-print(price['estimate'])
+# info2 = get_ride_cost(42.384316, -83.101800, 42.421465, -83.270715)
+# price = info2['prices'][1]
+# print(price['estimate'])
