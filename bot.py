@@ -1,8 +1,6 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, RegexHandler
-# from telegram import ReplyKeyboardRemove, KeyboardButton, ReplyKeyboardMarkup
-
+from telegram import ReplyKeyboardRemove, KeyboardButton, ReplyKeyboardMarkup
 import logging
-
 import settings
 import yataxi
 
@@ -13,7 +11,7 @@ FROM_TO, LOCATION = range(2)
 
 # Функция, которая соединяется с платформой Telegram, "тело" нашего бота
 def main():
-    mybot = Updater(settings.API_KEY, request_kwargs=settings.PROXY)
+    mybot = Updater(settings.API_KEY)
     dp = mybot.dispatcher
 
     conv_handler = ConversationHandler(
@@ -32,10 +30,17 @@ def main():
     mybot.start_polling()
     mybot.idle()
 
-
+#Кнопки геопозиция и поделиться контактами работают только с телефона!!!
 def start(bot, update):
-    text = 'Добро пожаловать в TaxiBot.'
-    update.message.reply_text(text)
+    share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
+    reply_markup = ReplyKeyboardMarkup([[share_location_start]], resize_keyboard=True)
+    bot.send_message(update.message.chat_id, 'Куда машину подавать будем?', reply_markup=reply_markup)
+   #если введенное значение пользователем значение == float, 
+   #то выдать сообщение с просьбой отметить на карте точку назначения, через геопозицию
+    if update.message.location == float:
+        update.message.reply_text('Теперь нужно указать куда поедем')
+        user_destination = update.message.location
+        return True
     return FROM_TO
 
 
@@ -64,16 +69,6 @@ def from_to_address(bot, update):
 def to_address(bot, update):
     update.message.reply_text('Проверка2!')
     pass
-
-# Кнопки не работают
-# def my_keyboard():
-#    address1 = KeyboardButton('Начальный адрес')
-#    address2 = KeyboardButton('Конечный адрес')
-#    my_keyboard = ReplyKeyboardMarkup([
-#        [address1, address2]
-#    ], resize_keyboard=True)
-#    return my_keyboard
-
 
 # Вызываем функцию - эта строчка собственно запускает бота
 main()
