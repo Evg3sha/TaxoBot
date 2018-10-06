@@ -21,7 +21,8 @@ def __make_request(url, params):
 def get_location(text):
     params = {
         'format': 'json',
-        'geocode': '{}'.format(text)
+        'geocode': '{}'.format(text),
+        'results': '1',
     }
     return __make_request('https://geocode-maps.yandex.ru/1.x/', params)
 

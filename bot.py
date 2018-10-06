@@ -75,7 +75,6 @@ def from_yandex(bot, update, user_data):
     add = arg(loc_name)
     ll1 = add[0]
     ll2 = add[1]
-    print(add)
     user_data['from_lat'] = ll1
     user_data['from_long'] = ll2
     update.message.reply_text('enter destination coordinates')
@@ -93,7 +92,6 @@ def to_yandex(bot, update, user_data):
     add2 = arg(loc_name)
     ll3 = add2[0]
     ll4 = add2[1]
-    print(add2)
     user_data['to_lat'] = ll3
     user_data['to_long'] = ll4
     update.message.reply_text('results ready')
@@ -105,9 +103,7 @@ def results(bot, update, user_data):
     ll2 = user_data['from_lat']
     ll3 = user_data['to_long']
     ll4 = user_data['to_lat']
-    print(ll1, ll2, ll3, ll4)
     info = yataxi.get_ride_cost(ll1, ll2, ll3, ll4)
-    print(info)
     price = info['options']
     for pri in price:
         price_name = pri['price']
