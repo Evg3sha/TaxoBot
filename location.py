@@ -10,7 +10,6 @@ def __make_request(url, params):
     }
     session = requests.Session()
     req = requests.Request('GET', url, headers=headers, params=params).prepare()
-    print(req.url)
     resp = session.send(req)
 
     if resp.status_code != 200:
