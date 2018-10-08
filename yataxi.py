@@ -35,8 +35,4 @@ def get_ride_cost(long_from, lat_from, long_to, lat_to):
 
     return __make_request('https://taxi-routeinfo.taxi.yandex.net/taxi_info', params)
 
-# info = get_ride_cost(55.787875, 37.600884, 55.696461, 37.771516)
-# price = info['options']
-# for pri in price:
-#    price_name = pri['price']
-#    print('Price: {}'.format(price_name))
+

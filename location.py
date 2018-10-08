@@ -25,8 +25,3 @@ def get_location(text):
     }
     return __make_request('https://geocode-maps.yandex.ru/1.x/', params)
 
-# info = get_location('ул. Тверская, дом 7')
-# location = info['response']['GeoObjectCollection']['featureMember']
-# for loc in location:
-#    loc_name = loc['GeoObject']['Point']['pos']
-#    print(loc_name)
