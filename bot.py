@@ -39,7 +39,8 @@ def main():
 def start(bot, update):
     share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
     cancel_button = KeyboardButton('Отмена заказа')
-    reply_markup = ReplyKeyboardMarkup([[share_location_start, cancel_button]], resize_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup([[share_location_start, cancel_button]], one_time_keyboard=True,
+                                       resize_keyboard=True)
     bot.send_message(update.message.chat_id,
                      'Привет, я помогу выбрать самое дешевое такси, введите адрес или отправьте геолокацию.',
                      reply_markup=reply_markup)
