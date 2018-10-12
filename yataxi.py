@@ -28,7 +28,7 @@ def get_region_info(long, lat):
 
 
 # Поиск информации о поездке
-def get_ride_cost(long_from, lat_from, long_to, lat_to):
+def get_ride_cost(lat_from, long_from, lat_to, long_to):
     params = {
         'rll': '{},{}~{},{}'.format(lat_from, long_from, lat_to, long_to)
     }

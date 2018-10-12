@@ -4,6 +4,7 @@ import logging
 import settings
 import yataxi
 import location
+import city
 
 logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Tax_o_Bot.log')
 
@@ -18,13 +19,13 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            FROM: [MessageHandler(Filters.location, from_yandex, pass_user_data=True),
+            FROM: [MessageHandler(Filters.location, from_address, pass_user_data=True),
                    RegexHandler('^(Отмена заказа)$', cancel),
-                   MessageHandler(Filters.text, from_yandex, pass_user_data=True)],
+                   MessageHandler(Filters.text, from_address, pass_user_data=True)],
 
-            TO: [MessageHandler(Filters.location, to_yandex, pass_user_data=True),
+            TO: [MessageHandler(Filters.location, to_address, pass_user_data=True),
                  RegexHandler('^(Отмена заказа)$', cancel),
-                 MessageHandler(Filters.text, to_yandex, pass_user_data=True)],
+                 MessageHandler(Filters.text, to_address, pass_user_data=True)],
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
@@ -58,7 +59,7 @@ def arg(list):
     return add1, add2
 
 
-def from_yandex(bot, update, user_data):
+def from_address(bot, update, user_data):
     command = update.message.text
     if update.message.location is None:
         command = command.replace(',', '').split()
@@ -68,22 +69,22 @@ def from_yandex(bot, update, user_data):
             loc_name = loc['GeoObject']['Point']['pos']
             loc_name = loc_name.split(' ')
         add = arg(loc_name)
-        from_lat_ya = add[0]
-        from_long_ya = add[1]
-        user_data['from_lat'] = from_lat_ya
-        user_data['from_long'] = from_long_ya
-        update.message.reply_text('enter destination coordinates')
+        from_long = add[0]
+        from_lat = add[1]
+        user_data['from_lat'] = from_lat
+        user_data['from_long'] = from_long
+        update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
     else:
         command = update.message.location
-        from_long_location_ya = command['longitude']
-        from_lat_location_ya = command['latitude']
-        user_data['from_lat'] = from_lat_location_ya
-        user_data['from_long'] = from_long_location_ya
-        update.message.reply_text('enter destination coordinates')
+        from_long_location = command['longitude']
+        from_lat_location = command['latitude']
+        user_data['from_lat'] = from_lat_location
+        user_data['from_long'] = from_long_location
+        update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
     return TO
 
 
-def to_yandex(bot, update, user_data):
+def to_address(bot, update, user_data):
     command2 = update.message.text
     if update.message.location is None:
         command2 = command2.replace(',', '').split()
@@ -93,27 +94,30 @@ def to_yandex(bot, update, user_data):
             loc_name = loc['GeoObject']['Point']['pos']
             loc_name = loc_name.split(' ')
         add2 = arg(loc_name)
-        to_lat_ya = add2[0]
-        to_long_ya = add2[1]
-        from_long_ya = user_data['from_long']
-        from_lat_ya = user_data['from_lat']
-        info = yataxi.get_ride_cost(from_long_ya, from_lat_ya, to_long_ya, to_lat_ya)
-        price = info['options']
+        to_long = add2[0]
+        to_lat = add2[1]
+        from_long = user_data['from_long']
+        from_lat = user_data['from_lat']
+        info_ya = yataxi.get_ride_cost(from_long, from_lat, to_long, to_lat)
+        price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
+        price = info_ya['options']
         for pri in price:
-            price_name = pri['price']
-        update.message.reply_text('Price: {}'.format(price_name))
+            price_yandex = pri['price']
+        update.message.reply_text(
+            'Цена в Яндекс.Такси: {}, Цена в Ситимобил: {}'.format(price_yandex, float(price_city)))
     else:
         command = update.message.location
-        to_long_location_ya = command['longitude']
-        to_lat_location_ya = command['latitude']
-        from_long_location_ya = user_data['from_long']
-        from_lat_location_ya = user_data['from_lat']
-        info = yataxi.get_ride_cost(from_lat_location_ya, from_long_location_ya, to_lat_location_ya,
-                                    to_long_location_ya)
-        price = info['options']
+        to_long_location = command['longitude']
+        to_lat_location = command['latitude']
+        from_long_location = user_data['from_long']
+        from_lat_location = user_data['from_lat']
+        info_ya = yataxi.get_ride_cost(from_long_location, from_lat_location, to_long_location, to_lat_location)
+        price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
+        price = info_ya['options']
         for pri in price:
-            price_name = pri['price']
-        update.message.reply_text('Price: {}'.format(price_name))
+            price_yandex = pri['price']
+        update.message.reply_text(
+            'Цена в Яндекс.Такси: {}, Цена в Ситимобил: {}'.format(price_yandex, float(price_city)))
 
 
 main()
