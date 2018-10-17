@@ -1,10 +1,14 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, RegexHandler
 from telegram import ReplyKeyboardRemove, KeyboardButton, ReplyKeyboardMarkup
+
+import location
 import logging
+
 import settings
 import yataxi
-import location
 import city
+from tasks import add
+
 
 logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Tax_o_Bot.log')
 
@@ -49,7 +53,7 @@ def start(bot, update):
 
 
 def cancel(bot, update):
-    update.message.reply_text('Bye!')
+    update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
     return ConversationHandler.END
 
 
@@ -61,63 +65,84 @@ def arg(list):
 
 def from_address(bot, update, user_data):
     command = update.message.text
-    if update.message.location is None:
-        command = command.replace(',', '').split()
-        info = location.get_location(command)
-        locat = info['response']['GeoObjectCollection']['featureMember']
-        for loc in locat:
-            loc_name = loc['GeoObject']['Point']['pos']
-            loc_name = loc_name.split(' ')
-        add = arg(loc_name)
-        from_long = add[0]
-        from_lat = add[1]
-        user_data['from_lat'] = from_lat
-        user_data['from_long'] = from_long
-        update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
-    else:
-        command = update.message.location
-        from_long_location = command['longitude']
-        from_lat_location = command['latitude']
-        user_data['from_lat'] = from_lat_location
-        user_data['from_long'] = from_long_location
-        update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
+    try:
+        if update.message.location is None:
+            command = command.replace(',', '').split()
+            info = location.get_location(command)
+            locat = info['response']['GeoObjectCollection']['featureMember']
+            for loc in locat:
+                loc_name = loc['GeoObject']['Point']['pos']
+                loc_name = loc_name.split(' ')
+            add = arg(loc_name)
+            from_long = add[0]
+            from_lat = add[1]
+            user_data['from_lat'] = from_lat
+            user_data['from_long'] = from_long
+            update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
+        else:
+            command = update.message.location
+            from_long_location = command['longitude']
+            from_lat_location = command['latitude']
+            user_data['from_lat'] = from_lat_location
+            user_data['from_long'] = from_long_location
+            update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
+    except Exception:
+        update.message.reply_text(
+            'Что-то пошло не так... Нажмите "Отмена заказа" и попробуйте ввести другой адрес или геопозицию.')
+
     return TO
 
 
 def to_address(bot, update, user_data):
     command2 = update.message.text
-    if update.message.location is None:
-        command2 = command2.replace(',', '').split()
-        info = location.get_location(command2)
-        locat = info['response']['GeoObjectCollection']['featureMember']
-        for loc in locat:
-            loc_name = loc['GeoObject']['Point']['pos']
-            loc_name = loc_name.split(' ')
-        add2 = arg(loc_name)
-        to_long = add2[0]
-        to_lat = add2[1]
-        from_long = user_data['from_long']
-        from_lat = user_data['from_lat']
-        info_ya = yataxi.get_ride_cost(from_long, from_lat, to_long, to_lat)
-        price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
-        price = info_ya['options']
-        for pri in price:
-            price_yandex = pri['price']
+    try:
+        if update.message.location is None:
+            command2 = command2.replace(',', '').split()
+            info = location.get_location(command2)
+            locat = info['response']['GeoObjectCollection']['featureMember']
+            for loc in locat:
+                loc_name = loc['GeoObject']['Point']['pos']
+                loc_name = loc_name.split(' ')
+            add2 = arg(loc_name)
+            to_long = add2[0]
+            to_lat = add2[1]
+            from_long = user_data['from_long']
+            from_lat = user_data['from_lat']
+            info_ya = yataxi.get_ride_cost(from_long, from_lat, to_long, to_lat)
+            price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
+            price = info_ya['options']
+            for pri in price:
+                price_yandex = pri['price']
+            if price_city < price_yandex:
+                update.message.reply_text(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Ситимобил.'.format(
+                        price_yandex, float(price_city)))
+            else:
+                update.message.reply_text(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси'.format(
+                        price_yandex, float(price_city)))
+        else:
+            command = update.message.location
+            to_long_location = command['longitude']
+            to_lat_location = command['latitude']
+            from_long_location = user_data['from_long']
+            from_lat_location = user_data['from_lat']
+            info_ya = yataxi.get_ride_cost(from_long_location, from_lat_location, to_long_location, to_lat_location)
+            price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
+            price = info_ya['options']
+            for pri in price:
+                price_yandex = pri['price']
+            if price_city < price_yandex:
+                update.message.reply_text(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Ситимобил.'.format(
+                        price_yandex, float(price_city)))
+            else:
+                update.message.reply_text(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси'.format(
+                        price_yandex, float(price_city)))
+    except Exception:
         update.message.reply_text(
-            'Цена в Яндекс.Такси: {}, Цена в Ситимобил: {}'.format(price_yandex, float(price_city)))
-    else:
-        command = update.message.location
-        to_long_location = command['longitude']
-        to_lat_location = command['latitude']
-        from_long_location = user_data['from_long']
-        from_lat_location = user_data['from_lat']
-        info_ya = yataxi.get_ride_cost(from_long_location, from_lat_location, to_long_location, to_lat_location)
-        price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
-        price = info_ya['options']
-        for pri in price:
-            price_yandex = pri['price']
-        update.message.reply_text(
-            'Цена в Яндекс.Такси: {}, Цена в Ситимобил: {}'.format(price_yandex, float(price_city)))
+            'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
 
 
 main()
