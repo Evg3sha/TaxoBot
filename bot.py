@@ -9,7 +9,6 @@ import yataxi
 import city
 from tasks import add
 
-
 logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Tax_o_Bot.log')
 
 FROM, TO = range(2)
@@ -119,8 +118,8 @@ def to_address(bot, update, user_data):
                         price_yandex, float(price_city)))
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси'.format(
-                        price_yandex, float(price_city)))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси: https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
+                        price_yandex, float(price_city), to_lat, to_long))
         else:
             command = update.message.location
             to_long_location = command['longitude']
