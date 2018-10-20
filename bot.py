@@ -15,7 +15,7 @@ FROM, TO = range(2)
 
 
 def main():
-    mybot = Updater(settings.API_KEY, request_kwargs=settings.PROXY)
+    mybot = Updater(settings.API_KEY)
     dp = mybot.dispatcher
 
     conv_handler = ConversationHandler(
@@ -114,12 +114,12 @@ def to_address(bot, update, user_data):
                 price_yandex = pri['price']
             if price_city < price_yandex:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Ситимобил.'.format(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
                         price_yandex, float(price_city)))
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси: https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
-                        price_yandex, float(price_city), to_lat, to_long))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
+                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long))
         else:
             command = update.message.location
             to_long_location = command['longitude']
@@ -133,13 +133,14 @@ def to_address(bot, update, user_data):
                 price_yandex = pri['price']
             if price_city < price_yandex:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Ситимобил.'.format(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
                         price_yandex, float(price_city)))
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси'.format(
-                        price_yandex, float(price_city)))
-    except Exception:
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
+                        price_yandex, float(price_city),from_lat_location, from_long_location, to_lat_location, to_long_location))
+    except Exception as ex:
+        logging.exeption(ex)
         update.message.reply_text(
             'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
 
