@@ -7,28 +7,38 @@ import logging
 import settings
 import yataxi
 import city
-from tasks import add
+from tasks import comparison
 
-logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Tax_o_Bot.log')
+logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Bot_test.log')
 
-FROM, TO = range(2)
+FROM, TO, PRICE, SELECT = range(4)
 
 
 def main():
     mybot = Updater(settings.API_KEY, request_kwargs=settings.PROXY)
     dp = mybot.dispatcher
-
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
 
         states={
             FROM: [MessageHandler(Filters.location, from_address, pass_user_data=True),
                    RegexHandler('^(Отмена заказа)$', cancel),
-                   MessageHandler(Filters.text, from_address, pass_user_data=True)],
+                   MessageHandler(Filters.text, from_address, pass_user_data=True),
+                   ],
 
             TO: [MessageHandler(Filters.location, to_address, pass_user_data=True),
                  RegexHandler('^(Отмена заказа)$', cancel),
-                 MessageHandler(Filters.text, to_address, pass_user_data=True)],
+                 MessageHandler(Filters.text, to_address, pass_user_data=True),
+                 ],
+
+            PRICE: [RegexHandler('^(Отмена заказа)$', cancel),
+                    MessageHandler(Filters.text, start_price, pass_user_data=True),
+                    ],
+
+            SELECT: [RegexHandler('^(Отмена заказа)$', cancel),
+                     MessageHandler(Filters.text, select, pass_user_data=True),
+                     MessageHandler(Filters.location, select, pass_user_data=True), ]
+
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
@@ -43,17 +53,35 @@ def main():
 def start(bot, update):
     share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
     cancel_button = KeyboardButton('Отмена заказа')
-    reply_markup = ReplyKeyboardMarkup([[share_location_start, cancel_button]], one_time_keyboard=True,
+    start_price = KeyboardButton('Задать желаемую цену')
+    reply_markup = ReplyKeyboardMarkup([[share_location_start, cancel_button, start_price]], one_time_keyboard=True,
                                        resize_keyboard=True)
     bot.send_message(update.message.chat_id,
                      'Привет, я помогу выбрать самое дешевое такси, введите адрес или отправьте геолокацию.',
                      reply_markup=reply_markup)
-    return FROM
+
+    return SELECT
+
+
+def select(bot, update, user_data):
+    text = update.message.text
+    if text == 'Задать желаемую цену':
+        update.message.reply_text('ВВедите цену')
+        return PRICE
+    else:
+        return from_address(bot, update, user_data)
 
 
 def cancel(bot, update):
     update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
     return ConversationHandler.END
+
+
+def start_price(bot, update, user_data):
+    command = update.message.text
+    user_data['user_price'] = float(command)
+    update.message.reply_text('text')
+    return FROM
 
 
 def arg(list):
@@ -87,7 +115,7 @@ def from_address(bot, update, user_data):
             update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
     except Exception:
         update.message.reply_text(
-            'Что-то пошло не так... Нажмите "Отмена заказа" и попробуйте ввести другой адрес или геопозицию.')
+            'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
 
     return TO
 
@@ -107,19 +135,22 @@ def to_address(bot, update, user_data):
             to_lat = add2[1]
             from_long = user_data['from_long']
             from_lat = user_data['from_lat']
-            info_ya = yataxi.get_ride_cost(from_long, from_lat, to_long, to_lat)
+            price_yandex = ya_price.price(from_long, from_lat, to_long, to_lat)
             price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
-            price = info_ya['options']
-            for pri in price:
-                price_yandex = pri['price']
+
+            user_price = user_data['user_price']
+            # price_yandex == user_price or price_city == user_price:
+            results = comparison(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+            update.message.reply_text(results.get(timeout=5))
+
             if price_city < price_yandex:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Ситимобил.'.format(
                         price_yandex, float(price_city)))
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
-                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси'.format(
+                        price_yandex, float(price_city)))
         else:
             command = update.message.location
             to_long_location = command['longitude']
@@ -138,9 +169,9 @@ def to_address(bot, update, user_data):
             else:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
-                        price_yandex, float(price_city),from_lat_location, from_long_location, to_lat_location, to_long_location))
-    except Exception as ex:
-        logging.exeption(ex)
+                        price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
+                        to_long_location))
+    except Exception:
         update.message.reply_text(
             'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
 
