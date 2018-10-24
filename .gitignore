@@ -2,5 +2,5 @@
 .idea/
 *.log
 .env/
-setting.py
+settings.py
 .DS_Store
