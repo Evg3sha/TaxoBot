@@ -15,7 +15,7 @@ FROM, TO = range(2)
 
 
 def main():
-    mybot = Updater(settings.API_KEY)
+    mybot = Updater(settings.API_KEY, request_kwargs=settings.PROXY)
     dp = mybot.dispatcher
 
     conv_handler = ConversationHandler(
