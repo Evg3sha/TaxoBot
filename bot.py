@@ -7,6 +7,7 @@ import logging
 import settings
 import yataxi
 import city
+import ya_price
 from tasks import comparison
 
 logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Bot_test.log')
