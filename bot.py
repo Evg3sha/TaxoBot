@@ -173,11 +173,10 @@ def to_address(bot, update, user_data):
             to_lat_location = command['latitude']
             from_long_location = user_data['from_long']
             from_lat_location = user_data['from_lat']
-            info_ya = yataxi.get_ride_cost(from_long_location, from_lat_location, to_long_location, to_lat_location)
+
+            price_yandex = ya_price.price(from_long_location, from_lat_location, to_long_location, to_lat_location)
             price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
-            price = info_ya['options']
-            for pri in price:
-                price_yandex = pri['price']
+
             if price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
@@ -187,10 +186,12 @@ def to_address(bot, update, user_data):
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
                         to_long_location))
+
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
                 # user_price = 500
-                comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+                comparison.delay(update.message.chat_id, user_price, from_long_location, from_lat_location,
+                                 to_long_location, to_lat_location)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
     except Exception as ex:
         logging.exception(ex)
