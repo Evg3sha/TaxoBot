@@ -19,6 +19,8 @@ def main():
     mybot = Updater(settings.API_KEY)
     dp = mybot.dispatcher
     conv_handler = ConversationHandler(
+        # entry_points=[CommandHandler('start', to_address)],
+
         entry_points=[CommandHandler('start', start)],
 
         states={
@@ -32,8 +34,8 @@ def main():
                  MessageHandler(Filters.text, to_address, pass_user_data=True),
                  ],
 
-            PRICE: [RegexHandler('^(Отмена заказа)$', cancel),
-                    MessageHandler(Filters.text, start_price, pass_user_data=True),
+            PRICE: [MessageHandler(Filters.text, start_price, pass_user_data=True),
+                    RegexHandler('^(Отмена заказа)$', cancel),
                     ],
 
             SELECT: [RegexHandler('^(Отмена заказа)$', cancel),
@@ -58,7 +60,8 @@ def start(bot, update):
     reply_markup = ReplyKeyboardMarkup([[share_location_start, cancel_button, start_price]], one_time_keyboard=True,
                                        resize_keyboard=True)
     bot.send_message(update.message.chat_id,
-                     'Привет, я помогу выбрать самое дешевое такси, введите адрес или отправьте геолокацию.',
+                     'Привет, я помогу выбрать самое дешевое такси, введите адрес, отправьте геолокацию '
+                     'или нажмите кнопку "Задать желаемую цену".',
                      reply_markup=reply_markup)
 
     return SELECT
@@ -67,7 +70,7 @@ def start(bot, update):
 def select(bot, update, user_data):
     text = update.message.text
     if text == 'Задать желаемую цену':
-        update.message.reply_text('ВВедите цену')
+        update.message.reply_text('Введите цену')
         return PRICE
     else:
         return from_address(bot, update, user_data)
@@ -114,7 +117,8 @@ def from_address(bot, update, user_data):
             user_data['from_lat'] = from_lat_location
             user_data['from_long'] = from_long_location
             update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
-    except Exception:
+    except Exception as ex:
+        logging.exception(ex)
         update.message.reply_text(
             'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
 
@@ -122,7 +126,9 @@ def from_address(bot, update, user_data):
 
 
 def to_address(bot, update, user_data):
+    # def to_address(bot, update):
     command2 = update.message.text
+    # command2 = 'Тверская 1'
     try:
         if update.message.location is None:
             command2 = command2.replace(',', '').split()
@@ -136,6 +142,11 @@ def to_address(bot, update, user_data):
             to_lat = add2[1]
             from_long = user_data['from_long']
             from_lat = user_data['from_lat']
+
+            # from_lat = 55.739761
+            # from_long = 37.617006
+            # to_lat = 55.736952
+            # to_long = 37.62764
 
             price_yandex = ya_price.price(from_long, from_lat, to_long, to_lat)
             price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
@@ -151,6 +162,7 @@ def to_address(bot, update, user_data):
 
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
+                # user_price = 500
                 comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
 
@@ -175,8 +187,12 @@ def to_address(bot, update, user_data):
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
                         to_long_location))
+            if 'user_price' in user_data:
+                user_price = user_data['user_price']
+                # user_price = 500
+                comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+                update.message.reply_text('Ваша цена: {}'.format(user_price))
     except Exception as ex:
-        print(str(ex))
         logging.exception(ex)
         update.message.reply_text(
             'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')

@@ -1,4 +1,7 @@
+
 from celery import Celery
+from celery.exceptions import MaxRetriesExceededError
+
 import ya_price
 import city
 from telegram import Bot
@@ -36,4 +39,7 @@ def comparison(chat_id, user_price, from_long, from_lat, to_long, to_lat):
 
         else:
             mybot.send_message(chat_id, 'Ищем подходящую цену...')
-            comparison.retry(countdown=6, max_retries=3)
+            try:
+                comparison.retry(countdown=300, max_retries=6)
+            except MaxRetriesExceededError as exc:
+                mybot.send_message(chat_id, 'Ваше время истекло, попробуйте попозже.', exc=exc)
