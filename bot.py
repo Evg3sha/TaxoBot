@@ -10,13 +10,13 @@ import city
 import ya_price
 from tasks import comparison
 
-logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Bot_test.log')
+logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Bot.log')
 
 FROM, TO, PRICE, SELECT = range(4)
 
 
 def main():
-    mybot = Updater(settings.API_KEY, request_kwargs=settings.PROXY)
+    mybot = Updater(settings.API_KEY)
     dp = mybot.dispatcher
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
@@ -81,7 +81,7 @@ def cancel(bot, update):
 def start_price(bot, update, user_data):
     command = update.message.text
     user_data['user_price'] = float(command)
-    update.message.reply_text('text')
+    update.message.reply_text('Точка начала маршрута')
     return FROM
 
 
@@ -136,22 +136,25 @@ def to_address(bot, update, user_data):
             to_lat = add2[1]
             from_long = user_data['from_long']
             from_lat = user_data['from_lat']
+
             price_yandex = ya_price.price(from_long, from_lat, to_long, to_lat)
             price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
 
-            user_price = user_data['user_price']
-            # price_yandex == user_price or price_city == user_price:
-            results = comparison(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
-            update.message.reply_text(results.get(timeout=5))
-
             if price_city < price_yandex:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Ситимобил.'.format(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
                         price_yandex, float(price_city)))
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Перейдите в приложение Яндекс.Такси'.format(
-                        price_yandex, float(price_city)))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
+                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long))
+
+            if 'user_price' in user_data:
+                user_price = user_data['user_price']
+                comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+                update.message.reply_text('Ваша цена: {}'.format(user_price))
+
+
         else:
             command = update.message.location
             to_long_location = command['longitude']
@@ -172,7 +175,9 @@ def to_address(bot, update, user_data):
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
                         to_long_location))
-    except Exception:
+    except Exception as ex:
+        print(str(ex))
+        logging.exception(ex)
         update.message.reply_text(
             'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
 
