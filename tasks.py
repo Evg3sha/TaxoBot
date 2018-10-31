@@ -1,4 +1,3 @@
-
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError
 
@@ -8,11 +7,6 @@ from telegram import Bot
 import settings
 
 app = Celery('tasks', backend='redis://localhost:6379/0', broker='redis://127.0.0.1:6379//')
-
-
-@app.task
-def add(x, y):
-    return x + y
 
 
 @app.task
@@ -28,18 +22,23 @@ def comparison(chat_id, user_price, from_long, from_lat, to_long, to_lat):
 
     if city_test and ya_test:
         if float(price_city) < price_ya:
-            mybot.send_message(chat_id, 'Вам подойдет Ситимобил! http://onelink.to/5m3naz')
+            mybot.send_message(chat_id, '[Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)', parse_mode='Markdown')
         else:
-            mybot.send_message(chat_id, 'Вам подойдет Яндекс.Такси! https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156')
+            mybot.send_message(chat_id,
+                               '[Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)', parse_mode='Markdown')
     else:
         if city_test:
-            mybot.send_message(chat_id, 'Вам подойдет Ситимобил! http://onelink.to/5m3naz')
+            mybot.send_message(chat_id, '[Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)', parse_mode='Markdown')
 
         elif ya_test:
-            mybot.send_message(chat_id, 'Вам подойдет Яндекс.Такси! https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156')
+            mybot.send_message(chat_id,
+                               '[Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)', parse_mode='Markdown')
 
         else:
-            mybot.send_message(chat_id, 'Ищем подходящую цену...Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}.'.format(price_ya, float(price_city)))
+            mybot.send_message(chat_id,
+                               'Ищем подходящую цену...Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}.'.format(price_ya,
+                                                                                                              float(
+                                                                                                                  price_city)))
             try:
                 comparison.retry(countdown=300, max_retries=6)
             except MaxRetriesExceededError as exc:

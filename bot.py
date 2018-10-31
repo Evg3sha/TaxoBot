@@ -1,11 +1,10 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, RegexHandler
-from telegram import ReplyKeyboardRemove, KeyboardButton, ReplyKeyboardMarkup
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 import location
 import logging
 
 import settings
-import yataxi
 import city
 import ya_price
 from tasks import comparison
@@ -153,12 +152,12 @@ def to_address(bot, update, user_data):
 
             if price_city < price_yandex:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
-                        price_yandex, float(price_city)))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
+                        price_yandex, float(price_city)), parse_mode='Markdown')
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
-                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
+                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long), parse_mode='Markdown')
 
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
@@ -179,17 +178,16 @@ def to_address(bot, update, user_data):
 
             if price_city < price_yandex:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. http://onelink.to/5m3naz'.format(
-                        price_yandex, float(price_city)))
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
+                        price_yandex, float(price_city)), parse_mode='Markdown')
             else:
                 update.message.reply_text(
-                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156'.format(
+                    'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
-                        to_long_location))
+                        to_long_location), parse_mode='Markdown')
 
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
-                # user_price = 500
                 comparison.delay(update.message.chat_id, user_price, from_long_location, from_lat_location,
                                  to_long_location, to_lat_location)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
