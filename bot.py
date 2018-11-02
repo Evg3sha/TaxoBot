@@ -1,12 +1,15 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, RegexHandler
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 
+from celery import uuid
+
 import location
 import logging
 
 import settings
 import city
 import ya_price
+import tasks
 from tasks import comparison
 
 logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=logging.INFO, filename='Bot.log')
@@ -24,30 +27,30 @@ def main():
 
         states={
             FROM: [MessageHandler(Filters.location, from_address, pass_user_data=True),
-                   RegexHandler('^(Отмена заказа)$', cancel),
+                   RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
                    MessageHandler(Filters.text, from_address, pass_user_data=True),
                    ],
 
             TO: [MessageHandler(Filters.location, to_address, pass_user_data=True),
-                 RegexHandler('^(Отмена заказа)$', cancel),
+                 RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
                  MessageHandler(Filters.text, to_address, pass_user_data=True),
                  ],
 
             PRICE: [MessageHandler(Filters.text, start_price, pass_user_data=True),
-                    RegexHandler('^(Отмена заказа)$', cancel),
+                    RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
                     ],
 
-            SELECT: [RegexHandler('^(Отмена заказа)$', cancel),
+            SELECT: [RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
                      MessageHandler(Filters.text, select, pass_user_data=True),
                      MessageHandler(Filters.location, select, pass_user_data=True), ]
 
         },
 
-        fallbacks=[CommandHandler('cancel', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel, pass_user_data=True)]
     )
 
     dp.add_handler(conv_handler)
-    dp.add_handler(RegexHandler('^(Отмена заказа)$', cancel))
+    dp.add_handler(RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True))
     mybot.start_polling()
     mybot.idle()
 
@@ -75,7 +78,10 @@ def select(bot, update, user_data):
         return from_address(bot, update, user_data)
 
 
-def cancel(bot, update):
+def cancel(bot, update, user_data):
+    if 'task_id' in user_data:
+        task_id = user_data['task_id']
+        tasks.app.control.revoke(task_id)
     update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
     return ConversationHandler.END
 
@@ -162,7 +168,10 @@ def to_address(bot, update, user_data):
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
                 # user_price = 500
-                comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+                task_id = uuid()
+                comparison.apply_async((update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat), task_id=task_id)
+                user_data['task_id'] = task_id
+                # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
 
 
