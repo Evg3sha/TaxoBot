@@ -23,7 +23,7 @@ def main():
     conv_handler = ConversationHandler(
         # entry_points=[CommandHandler('start', to_address)],
 
-        entry_points=[CommandHandler('start', start)],
+        entry_points=[CommandHandler('start', start, pass_user_data=True)],
 
         states={
             FROM: [MessageHandler(Filters.location, from_address, pass_user_data=True),
@@ -55,7 +55,7 @@ def main():
     mybot.idle()
 
 
-def start(bot, update):
+def start(bot, update, user_data):
     share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
     cancel_button = KeyboardButton('Отмена заказа')
     start_price = KeyboardButton('Задать желаемую цену')
@@ -65,6 +65,9 @@ def start(bot, update):
                      'Привет, я помогу выбрать самое дешевое такси, введите адрес, отправьте геолокацию '
                      'или нажмите кнопку "Задать желаемую цену".',
                      reply_markup=reply_markup)
+    if 'task_id' in user_data:
+        task_id = user_data['task_id']
+        tasks.app.control.revoke(task_id)
 
     return SELECT
 
