@@ -67,7 +67,7 @@ def start(bot, update, user_data):
                      reply_markup=reply_markup)
     if 'task_id' in user_data:
         task_id = user_data['task_id']
-        tasks.app.control.revoke(task_id)
+        tasks.app.control.revoke(task_id, terminate=True)
 
     return SELECT
 
@@ -84,7 +84,7 @@ def select(bot, update, user_data):
 def cancel(bot, update, user_data):
     if 'task_id' in user_data:
         task_id = user_data['task_id']
-        tasks.app.control.revoke(task_id)
+        tasks.app.control.revoke(task_id, terminate=True)
     update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
     return ConversationHandler.END
 
@@ -172,14 +172,11 @@ def to_address(bot, update, user_data):
                 user_price = user_data['user_price']
                 # user_price = 500
                 task_id = uuid()
-                comparison.apply_async((update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat), task_id=task_id)
+                comparison.apply_async((update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat),
+                                       task_id=task_id)
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
-
-            if 'task_id' in user_data:
-                task_id = user_data['task_id']
-                tasks.app.control.revoke(task_id)
 
 
         else:
@@ -208,9 +205,6 @@ def to_address(bot, update, user_data):
                                  to_long_location, to_lat_location)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
 
-            if 'task_id' in user_data:
-                task_id = user_data['task_id']
-                tasks.app.control.revoke(task_id)
     except Exception as ex:
         logging.exception(ex)
         update.message.reply_text(
