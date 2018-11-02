@@ -177,6 +177,10 @@ def to_address(bot, update, user_data):
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
 
+            if 'task_id' in user_data:
+                task_id = user_data['task_id']
+                tasks.app.control.revoke(task_id)
+
 
         else:
             command = update.message.location
@@ -203,6 +207,10 @@ def to_address(bot, update, user_data):
                 comparison.delay(update.message.chat_id, user_price, from_long_location, from_lat_location,
                                  to_long_location, to_lat_location)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
+
+            if 'task_id' in user_data:
+                task_id = user_data['task_id']
+                tasks.app.control.revoke(task_id)
     except Exception as ex:
         logging.exception(ex)
         update.message.reply_text(
