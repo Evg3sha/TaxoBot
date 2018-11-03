@@ -198,11 +198,15 @@ def to_address(bot, update, user_data):
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
                         to_long_location), parse_mode='Markdown')
-
+                
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
-                comparison.delay(update.message.chat_id, user_price, from_long_location, from_lat_location,
-                                 to_long_location, to_lat_location)
+                # user_price = 500
+                task_id = uuid()
+                comparison.apply_async((update.message.chat_id, user_price, from_long_location, from_lat_location, to_long_location, to_lat_location),
+                                       task_id=task_id)
+                user_data['task_id'] = task_id
+                # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
 
     except Exception as ex:
