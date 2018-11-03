@@ -24,30 +24,31 @@ def main():
         # entry_points=[CommandHandler('start', to_address)],
 
         entry_points=[CommandHandler('start', start, pass_user_data=True),
+                        CommandHandler('help', help),
                         RegexHandler('^(Старт)$', start, pass_user_data=True)],
 
         states={
             FROM: [MessageHandler(Filters.location, from_address, pass_user_data=True),
-                   RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+                   RegexHandler('^(Выход)$', cancel, pass_user_data=True),
                    RegexHandler('^(Старт)$', start, pass_user_data=True),
-                   MessageHandler(Filters.text, from_address, pass_user_data=True),
+                   MessageHandler(Filters.text, from_address, pass_user_data=True)
                    ],
 
             TO: [MessageHandler(Filters.location, to_address, pass_user_data=True),
-                 RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+                 RegexHandler('^(Выход)$', cancel, pass_user_data=True),
                  RegexHandler('^(Старт)$', start, pass_user_data=True),
-                 MessageHandler(Filters.text, to_address, pass_user_data=True),
+                 MessageHandler(Filters.text, to_address, pass_user_data=True)
                  ],
 
             PRICE: [MessageHandler(Filters.text, start_price, pass_user_data=True),
-                    RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+                    RegexHandler('^(Выход)$', cancel, pass_user_data=True),
                     RegexHandler('^(Старт)$', start, pass_user_data=True),
                     ],
 
-            SELECT: [RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+            SELECT: [RegexHandler('^(Выход)$', cancel, pass_user_data=True),
                      MessageHandler(Filters.text, select, pass_user_data=True),
                      RegexHandler('^(Старт)$', start, pass_user_data=True),
-                     MessageHandler(Filters.location, select, pass_user_data=True), ]
+                     MessageHandler(Filters.location, select, pass_user_data=True)]
 
         },
 
@@ -55,14 +56,14 @@ def main():
     )
 
     dp.add_handler(conv_handler)
-    dp.add_handler(RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True))
+    dp.add_handler(RegexHandler('^(Выход)$', cancel, pass_user_data=True))
     mybot.start_polling()
     mybot.idle()
 
 
 def start(bot, update, user_data):
     share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
-    cancel_button = KeyboardButton('Отмена заказа')
+    cancel_button = KeyboardButton('Выход')
     start_price = KeyboardButton('Задать желаемую цену')
     start_button = KeyboardButton('Старт')
     reply_markup = ReplyKeyboardMarkup([[share_location_start, start_price],[cancel_button, start_button]], resize_keyboard=True,
@@ -97,7 +98,7 @@ def cancel(bot, update, user_data):
 
 def start_price(bot, update, user_data):
     command = update.message.text
-    if command == 'Отмена заказа':
+    if command == 'Выход':
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     else:
@@ -138,7 +139,7 @@ def from_address(bot, update, user_data):
     except Exception as ex:
         logging.exception(ex)
         update.message.reply_text(
-            'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
+            'Что-то пошло не так... Нажмите "Выход" и начните все сначала.')
 
     return TO
 
@@ -186,6 +187,7 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+                update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price))
 
 
         else:
@@ -216,11 +218,11 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
+                update.message.reply_text('Ваша цена: {}'.format(user_price))
 
     except Exception as ex:
         logging.exception(ex)
         update.message.reply_text(
-            'Что-то пошло не так... Нажмите "Отмена заказа" и начните все сначала.')
-
+            'Что-то пошло не так... Нажмите "Выход" и начните все сначала.')
 
 main()

@@ -28,11 +28,11 @@ def comparison(chat_id, user_price, from_long, from_lat, to_long, to_lat):
                                'Цена в пределах допустимого диапазона.')
     else:
         if city_test:
-            mybot.send_message(chat_id, '[Цена в пределах допустимого диапазона.')
+            mybot.send_message(chat_id, 'Цена в пределах допустимого диапазона.')
 
         elif ya_test:
             mybot.send_message(chat_id,
-                               '[Цена в пределах допустимого диапазона.')
+                               'Цена в пределах допустимого диапазона.')
 
         else:
             mybot.send_message(chat_id,
