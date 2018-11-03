@@ -36,7 +36,7 @@ def comparison(chat_id, user_price, from_long, from_lat, to_long, to_lat):
 
         else:
             mybot.send_message(chat_id,
-                               'Вы хотели поехать за {} руб. Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}.'.format(user_price, price_ya,
+                               'Вы хотели поехать за {} руб. Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Продолжаю поиск, ожидайте, я сообщу как найду подходящий вариант'.format(user_price, price_ya,
                                                                                                               float(
                                                                                                                   price_city)))
             try:
