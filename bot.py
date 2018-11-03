@@ -101,6 +101,8 @@ def start_price(bot, update, user_data):
     if command == 'Выход':
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
+    elif command.isdigit() is False:
+        update.message.reply_text('Цену нужно ввести цифрами, а не буквами!')
     else:
         user_data['user_price'] = float(command)
         update.message.reply_text('Точка начала маршрута')
@@ -219,7 +221,7 @@ def to_address(bot, update, user_data):
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
                 update.message.reply_text('Ваша цена: {}'.format(user_price))
-
+#Это точно должно быть здесь? разве это не повтор 139 строки?
     except Exception as ex:
         logging.exception(ex)
         update.message.reply_text(
