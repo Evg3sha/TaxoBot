@@ -23,25 +23,30 @@ def main():
     conv_handler = ConversationHandler(
         # entry_points=[CommandHandler('start', to_address)],
 
-        entry_points=[CommandHandler('start', start, pass_user_data=True)],
+        entry_points=[CommandHandler('start', start, pass_user_data=True),
+                        RegexHandler('^(Старт)$', start, pass_user_data=True)],
 
         states={
             FROM: [MessageHandler(Filters.location, from_address, pass_user_data=True),
                    RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+                   RegexHandler('^(Старт)$', start, pass_user_data=True),
                    MessageHandler(Filters.text, from_address, pass_user_data=True),
                    ],
 
             TO: [MessageHandler(Filters.location, to_address, pass_user_data=True),
                  RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+                 RegexHandler('^(Старт)$', start, pass_user_data=True),
                  MessageHandler(Filters.text, to_address, pass_user_data=True),
                  ],
 
             PRICE: [MessageHandler(Filters.text, start_price, pass_user_data=True),
                     RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
+                    RegexHandler('^(Старт)$', start, pass_user_data=True),
                     ],
 
             SELECT: [RegexHandler('^(Отмена заказа)$', cancel, pass_user_data=True),
                      MessageHandler(Filters.text, select, pass_user_data=True),
+                     RegexHandler('^(Старт)$', start, pass_user_data=True),
                      MessageHandler(Filters.location, select, pass_user_data=True), ]
 
         },
@@ -59,8 +64,9 @@ def start(bot, update, user_data):
     share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
     cancel_button = KeyboardButton('Отмена заказа')
     start_price = KeyboardButton('Задать желаемую цену')
-    reply_markup = ReplyKeyboardMarkup([[share_location_start, cancel_button, start_price]], one_time_keyboard=True,
-                                       resize_keyboard=True)
+    start_button = KeyboardButton('Старт')
+    reply_markup = ReplyKeyboardMarkup([[share_location_start, start_price],[cancel_button, start_button]], resize_keyboard=True,
+                                                                                                        one_time_keyboard=True)
     bot.send_message(update.message.chat_id,
                      'Привет, я помогу выбрать самое дешевое такси, введите адрес, отправьте геолокацию '
                      'или нажмите кнопку "Задать желаемую цену".',
@@ -75,7 +81,7 @@ def start(bot, update, user_data):
 def select(bot, update, user_data):
     text = update.message.text
     if text == 'Задать желаемую цену':
-        update.message.reply_text('Введите цену')
+        update.message.reply_text('Введите цену и я в течении 30 минут попробую найти вам такси за эти деньги или дешевле')
         return PRICE
     else:
         return from_address(bot, update, user_data)
@@ -91,9 +97,13 @@ def cancel(bot, update, user_data):
 
 def start_price(bot, update, user_data):
     command = update.message.text
-    user_data['user_price'] = float(command)
-    update.message.reply_text('Точка начала маршрута')
-    return FROM
+    if command == 'Отмена заказа':
+        update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
+        return ConversationHandler.END
+    else:
+        user_data['user_price'] = float(command)
+        update.message.reply_text('Точка начала маршрута')
+        return FROM
 
 
 def arg(list):
@@ -176,7 +186,7 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
-                update.message.reply_text('Ваша цена: {}'.format(user_price))
+                update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price))
 
 
         else:
