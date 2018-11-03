@@ -186,7 +186,6 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
-                update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price))
 
 
         else:
@@ -217,7 +216,6 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 # comparison.delay(update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat)
-                update.message.reply_text('Ваша цена: {}'.format(user_price))
 
     except Exception as ex:
         logging.exception(ex)
