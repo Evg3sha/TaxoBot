@@ -91,7 +91,7 @@ def select(bot, update, user_data):
         reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
                                            resize_keyboard=True,
                                            one_time_keyboard=True)
-        update.message.reply_text(
+        update.message.chat_id(
             'Введите цену и я в течении 30 минут попробую найти вам такси за эти деньги или дешевле',
             reply_markup=reply_markup)
         # Отправляет пользователя к ф-ии "start_price"
