@@ -81,19 +81,16 @@ def start(bot, update, user_data):
 
 
 # Ф-ия, которая выясняет, что ввел пользователь и перенаправляет его в зависимости от нажатой кнопки
-# или введенного текста. Изменение вида клавиатуры - добавленны кнопки "Выход" и "Старт", убраны кнопки
-# "Точка начала маршрута" и "Задать желаемую цену", т.к. здесь они не нужны
+# или введенного текста.
 def select(bot, update, user_data):
+    if 'task_id' in user_data:
+        task_id = user_data['task_id']
+        tasks.app.control.revoke(task_id, terminate=True)
+
     text = update.message.text
     if text == 'Задать желаемую цену':
-        cancel_button = KeyboardButton('Выход')
-        start_button = KeyboardButton('Старт')
-        reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
-                                           resize_keyboard=True,
-                                           one_time_keyboard=True)
         update.message.reply_text(
-            'Введите цену и я в течении 30 минут попробую найти вам такси за эти деньги или дешевле',
-            reply_markup=reply_markup)
+            'Введите цену и я в течении 30 минут попробую найти вам такси за эти деньги или дешевле')
         # Отправляет пользователя к ф-ии "start_price"
         return PRICE
     else:
@@ -112,6 +109,10 @@ def cancel(bot, update, user_data):
 
 # Просит пользователя ввести цену, за которую тот хочет отправиться в путь. Добавляется кнопка "Точка начала маршрута"
 def start_price(bot, update, user_data):
+    if 'task_id' in user_data:
+        task_id = user_data['task_id']
+        tasks.app.control.revoke(task_id, terminate=True)
+        
     command = update.message.text
     if command == 'Выход':
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
