@@ -109,9 +109,6 @@ def cancel(bot, update, user_data):
 def start_price(bot, update, user_data):
     command = update.message.text
     if command == 'Выход':
-        if 'task_id' in user_data:
-            task_id = user_data['task_id']
-            tasks.app.control.revoke(task_id, terminate=True)
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     elif command.isdigit() is False:
@@ -198,6 +195,8 @@ def to_address(bot, update, user_data):
                 comparison.apply_async((update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat),
                                        task_id=task_id)
                 user_data['task_id'] = task_id
+                update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price))
+
 
         else:
             command = update.message.location
@@ -226,6 +225,7 @@ def to_address(bot, update, user_data):
                                         to_long_location, to_lat_location),
                                        task_id=task_id)
                 user_data['task_id'] = task_id
+                update.message.reply_text('Ваша цена: {}'.format(user_price))
     except Exception as ex:
         logging.exception(ex)
         update.message.reply_text(
