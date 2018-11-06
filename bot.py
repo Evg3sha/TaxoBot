@@ -83,10 +83,6 @@ def start(bot, update, user_data):
 # Ф-ия, которая выясняет, что ввел пользователь и перенаправляет его в зависимости от нажатой кнопки
 # или введенного текста.
 def select(bot, update, user_data):
-    if 'task_id' in user_data:
-        task_id = user_data['task_id']
-        tasks.app.control.revoke(task_id, terminate=True)
-
     text = update.message.text
     if text == 'Задать желаемую цену':
         update.message.reply_text(
@@ -109,23 +105,19 @@ def cancel(bot, update, user_data):
 
 # Просит пользователя ввести цену, за которую тот хочет отправиться в путь. Добавляется кнопка "Точка начала маршрута"
 def start_price(bot, update, user_data):
-    if 'task_id' in user_data:
-        task_id = user_data['task_id']
-        tasks.app.control.revoke(task_id, terminate=True)
-
     command = update.message.text
+    share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
+    cancel_button = KeyboardButton('Выход')
+    start_button = KeyboardButton('Старт')
+    reply_markup = ReplyKeyboardMarkup([[share_location_start], [cancel_button, start_button]],
+                                       resize_keyboard=True,
+                                       one_time_keyboard=True)
     if command == 'Выход':
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     elif command.isdigit() is False:
         update.message.reply_text('Цену нужно ввести цифрами, а не буквами!')
     else:
-        share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
-        cancel_button = KeyboardButton('Выход')
-        start_button = KeyboardButton('Старт')
-        reply_markup = ReplyKeyboardMarkup([[share_location_start], [cancel_button, start_button]],
-                                           resize_keyboard=True,
-                                           one_time_keyboard=True)
         user_data['user_price'] = float(command)
         update.message.reply_text('Точка начала маршрута', reply_markup=reply_markup)
         return FROM
@@ -145,6 +137,9 @@ def from_address(bot, update, user_data):
     reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
+    if command == 'Выход':
+        update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
+        return ConversationHandler.END
     # try-except - обработчик ошибок. Если ошибки обнаруженны - остается только кнопка "Выход".
     try:
         if update.message.location is None:
@@ -189,6 +184,9 @@ def to_address(bot, update, user_data):
     reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
+    if command2 == 'Выход':
+        update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
+        return ConversationHandler.END
     try:
         if update.message.location is None:
             command2 = command2.replace(',', '').split()
@@ -224,10 +222,6 @@ def to_address(bot, update, user_data):
                 user_data['task_id'] = task_id
                 update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price), reply_markup=reply_markup)
 
-            if command2 == 'Выход':
-                update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
-                return ConversationHandler.END
-
 
         else:
             command = update.message.location
@@ -257,10 +251,6 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 update.message.reply_text('Ваша цена: {}'.format(user_price), reply_markup=reply_markup)
-
-            if command == 'Выход':
-                update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
-                return ConversationHandler.END
 
     except Exception as ex:
         logging.exception(ex)
