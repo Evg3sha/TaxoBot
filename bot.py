@@ -62,11 +62,13 @@ def main():
 
 
 # Стартовая ф-ия. Первое появление кнопок. Включает в себя начало маршрута и цену. Проверяет наличие предыдущих сессий
-# и очищение историю
+# и очищение истории
 def start(bot, update, user_data):
     share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
+    cancel_button = KeyboardButton('Выход')
     start_price = KeyboardButton('Задать желаемую цену')
-    reply_markup = ReplyKeyboardMarkup([[share_location_start, start_price]],
+    start_button = KeyboardButton('Старт')
+    reply_markup = ReplyKeyboardMarkup([[share_location_start, start_price], [cancel_button, start_button]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
     bot.send_message(update.message.chat_id,
@@ -103,26 +105,17 @@ def cancel(bot, update, user_data):
     return ConversationHandler.END
 
 
-# Просит пользователя ввести цену, за которую тот хочет отправиться в путь. Добавляется кнопка "Точка начала маршрута"
+# Просит пользователя ввести цену, за которую тот хочет отправиться в путь.
 def start_price(bot, update, user_data):
     command = update.message.text
-    share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
-    cancel_button = KeyboardButton('Выход')
-    start_button = KeyboardButton('Старт')
-    reply_markup = ReplyKeyboardMarkup([[share_location_start], [cancel_button, start_button]],
-                                       resize_keyboard=True,
-                                       one_time_keyboard=True)
     if command == 'Выход':
-        if 'task_id' in user_data:
-            task_id = user_data['task_id']
-            tasks.app.control.revoke(task_id, terminate=True)
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     elif command.isdigit() is False:
         update.message.reply_text('Цену нужно ввести цифрами, а не буквами!')
     else:
         user_data['user_price'] = float(command)
-        update.message.reply_text('Точка начала маршрута', reply_markup=reply_markup)
+        update.message.reply_text('Точка начала маршрута')
         return FROM
 
 
@@ -132,20 +125,9 @@ def arg(list):
     return add1, add2
 
 
-# Ф-ия принимает стартовый адрес. Запись в user_data долготы и широты. Изменение вида клавиатуры.
+# Ф-ия принимает стартовый адрес. Запись в user_data долготы и широты.
 def from_address(bot, update, user_data):
     command = update.message.text
-    cancel_button = KeyboardButton('Выход')
-    start_button = KeyboardButton('Старт')
-    reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
-                                       resize_keyboard=True,
-                                       one_time_keyboard=True)
-    if command == 'Выход':
-        if 'task_id' in user_data:
-            task_id = user_data['task_id']
-            tasks.app.control.revoke(task_id, terminate=True)
-        update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
-        return ConversationHandler.END
     # try-except - обработчик ошибок. Если ошибки обнаруженны - остается только кнопка "Выход".
     try:
         if update.message.location is None:
@@ -160,23 +142,19 @@ def from_address(bot, update, user_data):
             from_lat = add[1]
             user_data['from_lat'] = from_lat
             user_data['from_long'] = from_long
-            update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.',
-                                      reply_markup=reply_markup)
+            update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
         else:
             command = update.message.location
             from_long_location = command['longitude']
             from_lat_location = command['latitude']
             user_data['from_lat'] = from_lat_location
             user_data['from_long'] = from_long_location
-            update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.',
-                                      reply_markup=reply_markup)
+            update.message.reply_text('Введите конечную точку маршрута или отправте геопозицию.')
     except Exception as ex:
         logging.exception(ex)
-        cancel_markup = ReplyKeyboardMarkup([[cancel_button]],
-                                            resize_keyboard=True,
-                                            one_time_keyboard=True)
         update.message.reply_text(
-            'Что-то пошло не так... Нажмите "Выход" и начните все сначала.', reply_markup=cancel_markup)
+            'Что-то пошло не так... Нажмите "Выход" и начните все сначала.')
+
     return TO
 
 
@@ -184,18 +162,7 @@ def from_address(bot, update, user_data):
 # агрегаторах
 def to_address(bot, update, user_data):
     command2 = update.message.text
-
-    cancel_button = KeyboardButton('Выход')
-    start_button = KeyboardButton('Старт')
-    reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
-                                       resize_keyboard=True,
-                                       one_time_keyboard=True)
-    if command2 == 'Выход':
-        if 'task_id' in user_data:
-            task_id = user_data['task_id']
-            tasks.app.control.revoke(task_id, terminate=True)
-        update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
-        return ConversationHandler.END
+    # try-except - обработчик ошибок. Если ошибки обнаруженны - остается только кнопка "Выход".
     try:
         if update.message.location is None:
             command2 = command2.replace(',', '').split()
@@ -216,12 +183,11 @@ def to_address(bot, update, user_data):
             if price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
-                        price_yandex, float(price_city)), parse_mode='Markdown', reply_markup=reply_markup)
+                        price_yandex, float(price_city)), parse_mode='Markdown')
             else:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
-                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long), parse_mode='Markdown',
-                    reply_markup=reply_markup)
+                        price_yandex, float(price_city), from_lat, from_long, to_lat, to_long), parse_mode='Markdown')
 
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
@@ -229,7 +195,7 @@ def to_address(bot, update, user_data):
                 comparison.apply_async((update.message.chat_id, user_price, from_long, from_lat, to_long, to_lat),
                                        task_id=task_id)
                 user_data['task_id'] = task_id
-                update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price), reply_markup=reply_markup)
+                update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price))
 
 
         else:
@@ -245,12 +211,12 @@ def to_address(bot, update, user_data):
             if price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
-                        price_yandex, float(price_city)), parse_mode='Markdown', reply_markup=reply_markup)
+                        price_yandex, float(price_city)), parse_mode='Markdown')
             else:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
-                        to_long_location), parse_mode='Markdown', reply_markup=reply_markup)
+                        to_long_location), parse_mode='Markdown')
 
             if 'user_price' in user_data:
                 user_price = user_data['user_price']
@@ -259,15 +225,12 @@ def to_address(bot, update, user_data):
                                         to_long_location, to_lat_location),
                                        task_id=task_id)
                 user_data['task_id'] = task_id
-                update.message.reply_text('Ваша цена: {}'.format(user_price), reply_markup=reply_markup)
-
+                update.message.reply_text('Ваша цена: {}'.format(user_price))
     except Exception as ex:
         logging.exception(ex)
-        cancel_markup = ReplyKeyboardMarkup([[cancel_button]],
-                                            resize_keyboard=True,
-                                            one_time_keyboard=True)
         update.message.reply_text(
-            'Что-то пошло не так... Нажмите "Выход" и начните все сначала.', reply_markup=cancel_markup)
+            'Что-то пошло не так... Нажмите "Выход" и начните все сначала.')
 
 
+# Вызываем функцию - эта строчка собственно запускает бота
 main()
