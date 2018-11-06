@@ -112,7 +112,7 @@ def start_price(bot, update, user_data):
     if 'task_id' in user_data:
         task_id = user_data['task_id']
         tasks.app.control.revoke(task_id, terminate=True)
-        
+
     command = update.message.text
     if command == 'Выход':
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
@@ -224,6 +224,10 @@ def to_address(bot, update, user_data):
                 user_data['task_id'] = task_id
                 update.message.reply_text('Вы хотите поехать за: {} руб.'.format(user_price), reply_markup=reply_markup)
 
+            if command2 == 'Выход':
+                update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
+                return ConversationHandler.END
+
 
         else:
             command = update.message.location
@@ -253,6 +257,10 @@ def to_address(bot, update, user_data):
                                        task_id=task_id)
                 user_data['task_id'] = task_id
                 update.message.reply_text('Ваша цена: {}'.format(user_price), reply_markup=reply_markup)
+
+            if command == 'Выход':
+                update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
+                return ConversationHandler.END
 
     except Exception as ex:
         logging.exception(ex)
