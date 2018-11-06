@@ -16,10 +16,6 @@ logging.basicConfig(format=('%(name)s - %(levelname)s - %(message)s'), level=log
 
 FROM, TO, PRICE, SELECT = range(4)
 
-cancel_button = KeyboardButton('Выход')
-share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
-start_price = KeyboardButton('Задать желаемую цену')
-start_button = KeyboardButton('Старт')
 
 # Функция, которая соединяется с платформой Telegram, "тело" нашего бота
 def main():
@@ -68,6 +64,8 @@ def main():
 # Стартовая ф-ия. Первое появление кнопок. Включает в себя начало маршрута и цену. Проверяет наличие предыдущих сессий
 # и очищение историю
 def start(bot, update, user_data):
+    share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
+    start_price = KeyboardButton('Задать желаемую цену')
     reply_markup = ReplyKeyboardMarkup([[share_location_start, start_price]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
@@ -88,6 +86,8 @@ def start(bot, update, user_data):
 def select(bot, update, user_data):
     text = update.message.text
     if text == 'Задать желаемую цену':
+        cancel_button = KeyboardButton('Выход')
+        start_button = KeyboardButton('Старт')
         reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
                                            resize_keyboard=True,
                                            one_time_keyboard=True)
@@ -119,6 +119,9 @@ def start_price(bot, update, user_data):
     elif command.isdigit() is False:
         update.message.reply_text('Цену нужно ввести цифрами, а не буквами!')
     else:
+        share_location_start = KeyboardButton('Точка начала маршрута', request_location=True)
+        cancel_button = KeyboardButton('Выход')
+        start_button = KeyboardButton('Старт')
         reply_markup = ReplyKeyboardMarkup([[share_location_start], [cancel_button, start_button]],
                                            resize_keyboard=True,
                                            one_time_keyboard=True)
@@ -136,6 +139,8 @@ def arg(list):
 # Ф-ия принимает стартовый адрес. Запись в user_data долготы и широты. Изменение вида клавиатуры.
 def from_address(bot, update, user_data):
     command = update.message.text
+    cancel_button = KeyboardButton('Выход')
+    start_button = KeyboardButton('Старт')
     reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
@@ -177,10 +182,12 @@ def from_address(bot, update, user_data):
 # агрегаторах
 def to_address(bot, update, user_data):
     command2 = update.message.text
+
+    cancel_button = KeyboardButton('Выход')
+    start_button = KeyboardButton('Старт')
     reply_markup = ReplyKeyboardMarkup([[cancel_button, start_button]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
-    # try-except - обработчик ошибок. Если ошибки обнаруженны - остается только кнопка "Выход".
     try:
         if update.message.location is None:
             command2 = command2.replace(',', '').split()
@@ -198,7 +205,7 @@ def to_address(bot, update, user_data):
             price_yandex = ya_price.price(from_long, from_lat, to_long, to_lat)
             price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
 
-            if float(price_city) < price_yandex:
+            if price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
                         price_yandex, float(price_city)), parse_mode='Markdown', reply_markup=reply_markup)
@@ -227,7 +234,7 @@ def to_address(bot, update, user_data):
             price_yandex = ya_price.price(from_long_location, from_lat_location, to_long_location, to_lat_location)
             price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
 
-            if float(price_city) < price_yandex:
+            if price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
                         price_yandex, float(price_city)), parse_mode='Markdown', reply_markup=reply_markup)
@@ -255,5 +262,4 @@ def to_address(bot, update, user_data):
             'Что-то пошло не так... Нажмите "Выход" и начните все сначала.', reply_markup=cancel_markup)
 
 
-# Вызываем функцию - эта строчка собственно запускает бота
 main()
