@@ -113,6 +113,9 @@ def start_price(bot, update, user_data):
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
     if command == 'Выход':
+        if 'task_id' in user_data:
+            task_id = user_data['task_id']
+            tasks.app.control.revoke(task_id, terminate=True)
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     elif command.isdigit() is False:
@@ -138,6 +141,9 @@ def from_address(bot, update, user_data):
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
     if command == 'Выход':
+        if 'task_id' in user_data:
+            task_id = user_data['task_id']
+            tasks.app.control.revoke(task_id, terminate=True)
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     # try-except - обработчик ошибок. Если ошибки обнаруженны - остается только кнопка "Выход".
@@ -185,6 +191,9 @@ def to_address(bot, update, user_data):
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
     if command2 == 'Выход':
+        if 'task_id' in user_data:
+            task_id = user_data['task_id']
+            tasks.app.control.revoke(task_id, terminate=True)
         update.message.reply_text('До скорой встречи! Чтобы начать все с начала нажмите /start')
         return ConversationHandler.END
     try:
