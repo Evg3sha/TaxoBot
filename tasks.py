@@ -23,28 +23,28 @@ def comparison(chat_id, user_price, from_long, from_lat, to_long, to_lat):
     if city_test and ya_test:
         if float(price_city) < price_ya:
             mybot.send_message(chat_id,
-                               'Цена в пределах допустимого диапазона.[Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
+                               'Цена в пределах допустимого диапазона.[Перейди в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
                                    price_ya, float(price_city)), parse_mode='Markdown')
         else:
             mybot.send_message(chat_id,
-                               'Цена в пределах допустимого диапазона.[Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
+                               'Цена в пределах допустимого диапазона.[Перейди в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                                    price_ya, float(price_city), from_lat, from_long, to_lat, to_long),
                                parse_mode='Markdown')
     else:
         if city_test:
             mybot.send_message(chat_id,
-                               'Цена в пределах допустимого диапазона.[Перейдите в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
+                               'Цена в пределах допустимого диапазона.[Перейди в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
                                    price_ya, float(price_city)), parse_mode='Markdown')
 
         elif ya_test:
             mybot.send_message(chat_id,
-                               'Цена в пределах допустимого диапазона.[Перейдите в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
+                               'Цена в пределах допустимого диапазона.[Перейди в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                                    price_ya, float(price_city), from_lat, from_long, to_lat, to_long),
                                parse_mode='Markdown')
 
         else:
             mybot.send_message(chat_id,
-                               'Вы хотели поехать за {} руб. Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Продолжаю поиск, ожидайте, я сообщу как найду подходящий вариант'.format(
+                               'ТЫ хотел поехать за {} руб. Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. Продолжаю поиск, я скажу как найду подходящий вариант.'.format(
                                    user_price, price_ya,
                                    float(
                                        price_city)))
@@ -52,5 +52,5 @@ def comparison(chat_id, user_price, from_long, from_lat, to_long, to_lat):
                 comparison.retry(countdown=600, max_retries=2)
             except MaxRetriesExceededError as exc:
                 mybot.send_message(chat_id,
-                                   'Не удалось найти такси за вашу цену, попробуйте попозже или не будьте такими жадными.',
+                                   'Мне не удалось найти такси за такую цену, попробуй попозже или не будь таким жадным.',
                                    exc=exc)

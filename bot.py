@@ -71,7 +71,7 @@ def start(bot, update, user_data):
                                        one_time_keyboard=True)
     bot.send_message(update.message.chat_id,
                      'Привет, я помогу выбрать для тебя такси подешевле, введи адрес, откуда поедешь,'
-                     ' или или нажми точку на карте (нажать точку на карте ты сможешь только с телефона).',
+                     'или нажми точку на карте (нажать точку на карте ты сможешь только с телефона).',
                      reply_markup=reply_markup)
     if 'task_id' in user_data:
         task_id = user_data['task_id']
@@ -168,7 +168,7 @@ def to_address(bot, update, user_data):
             user_data['to_long'] = to_long
 
             update.message.reply_text(
-                'Ты можешь решить, за сколь хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.')
+                'Ты можешь решить, за сколько хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.')
 
             price_yandex = ya_price.price(from_long, from_lat, to_long, to_lat)
             price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
@@ -193,7 +193,7 @@ def to_address(bot, update, user_data):
             user_data['to_long'] = to_long_location
 
             update.message.reply_text(
-                'Ты можешь решить, за сколь хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.')
+                'Ты можешь решить, за сколько хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.')
 
             price_yandex = ya_price.price(from_long_location, from_lat_location, to_long_location, to_lat_location)
             price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
@@ -223,10 +223,14 @@ def to_address(bot, update, user_data):
 # или введенного текста.
 def select(bot, update, user_data):
     text = update.message.text
+    cancel_button = KeyboardButton('Выход')
+    reply_markup = ReplyKeyboardMarkup([[cancel_button]],
+                                       resize_keyboard=True,
+                                       one_time_keyboard=True)
     if text == 'Я заплачу...':
         update.message.reply_text(
             'Введи цену и я в течении 30 минут попробую найти такси за эти деньги или дешевле',
-            reply_markup=None)
+            reply_markup=reply_markup)
         # Отправляет пользователя к ф-ии "start_price"
         return PRICE
     else:
