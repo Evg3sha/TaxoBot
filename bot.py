@@ -105,6 +105,10 @@ def arg(list):
 # Ф-ия принимает стартовый адрес. Запись в user_data долготы и широты.
 def from_address(bot, update, user_data):
     command = update.message.text
+    cancel_button = KeyboardButton('Выход')
+    reply_markup = ReplyKeyboardMarkup([[cancel_button]],
+                                       resize_keyboard=True,
+                                       one_time_keyboard=True)
     # try-except - обработчик ошибок.
     try:
         if update.message.location is None:
@@ -120,7 +124,8 @@ def from_address(bot, update, user_data):
             user_data['from_lat'] = from_lat
             user_data['from_long'] = from_long
             update.message.reply_text(
-                'Напиши, куда ты хочешь поехать или выбери на карте (на карте что-то выбрать ты сможешь только с телефона).')
+                'Напиши, куда ты хочешь поехать или выбери на карте (на карте что-то выбрать ты сможешь только с телефона).',
+                reply_markup=reply_markup)
         else:
             command = update.message.location
             from_long_location = command['longitude']
@@ -128,7 +133,8 @@ def from_address(bot, update, user_data):
             user_data['from_lat'] = from_lat_location
             user_data['from_long'] = from_long_location
             update.message.reply_text(
-                'Напиши, куда ты хочешь поехать или выбери на карте (на карте что-то выбрать ты сможешь только с телефона).')
+                'Напиши, куда ты хочешь поехать или выбери на карте (на карте что-то выбрать ты сможешь только с телефона).',
+                reply_markup=reply_markup)
     except Exception as ex:
         cancel_button = KeyboardButton('Выход')
         reply_markup = ReplyKeyboardMarkup([[cancel_button]],
