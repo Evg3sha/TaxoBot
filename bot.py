@@ -264,8 +264,14 @@ def start_price(bot, update, user_data):
     price_city = user_data['price_city']
 
     if price_city < float(command) or price_yandex < float(command):
+        cancel_button = KeyboardButton('Выход')
+        reply_markup = ReplyKeyboardMarkup([[cancel_button]],
+                                           resize_keyboard=True,
+                                           one_time_keyboard=True)
         update.message.reply_text(
-            'Введенная цена больше той, за которую можно поехать. Воспользуйся предложенным такси.')
+            'Введенная цена больше той, за которую можно поехать. Воспользуйся предложенным такси.',
+            reply_markup=reply_markup)
+        return ConversationHandler.END
 
     elif command == 'Выход':
         start_button = KeyboardButton('Старт')
