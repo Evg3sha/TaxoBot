@@ -156,6 +156,7 @@ def to_address(bot, update, user_data):
     reply_markup = ReplyKeyboardMarkup([[start_price], [cancel_button]],
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
+    text = 'Ты можешь решить, за сколько хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.'
     # try-except - обработчик ошибок. Если ошибки обнаруженны - остается только кнопка "Выход".
     try:
         if update.message.location is None:
@@ -173,21 +174,28 @@ def to_address(bot, update, user_data):
             user_data['to_lat'] = to_lat
             user_data['to_long'] = to_long
 
-            update.message.reply_text(
-                'Ты можешь решить, за сколько хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.')
-
             price_yandex = ya_price.price(from_long, from_lat, to_long, to_lat)
             price_city = city.get_est_cost(from_lat, from_long, to_lat, to_long)
+            user_data['price_yandex'] = price_yandex
+            user_data['price_city'] = price_city
 
-            if price_city < price_yandex:
+            if from_long == to_long and from_lat == to_lat:
+                update.message.reply_text(
+                    'Здесь ты мог бы и пешком пройтись. Нажми "Выход" и подумай над своим маршрутом.')
+
+            elif price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейди в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
                         price_yandex, float(price_city)), parse_mode='Markdown', reply_markup=reply_markup)
+                update.message.reply_text(text)
+
             else:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейди в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                         price_yandex, float(price_city), from_lat, from_long, to_lat, to_long), parse_mode='Markdown',
                     reply_markup=reply_markup)
+                update.message.reply_text(text)
+
 
         else:
             command = update.message.location
@@ -198,21 +206,26 @@ def to_address(bot, update, user_data):
             user_data['to_lat'] = to_lat_location
             user_data['to_long'] = to_long_location
 
-            update.message.reply_text(
-                'Ты можешь решить, за сколько хочешь поехать и мы постараемся поискать, когда цена станет подходящей(нажми кнопку "Я заплачу...") или ты можешь сразу перейти в приложение.')
-
             price_yandex = ya_price.price(from_long_location, from_lat_location, to_long_location, to_lat_location)
             price_city = city.get_est_cost(from_lat_location, from_long_location, to_lat_location, to_long_location)
+            user_data['price_yandex'] = price_yandex
+            user_data['price_city'] = price_city
+
+            if from_long_location == to_long_location and from_lat_location == to_lat_location:
+                update.message.reply_text(
+                    'Здесь ты мог бы и пешком пройтись. Нажми "Выход" и подумай над своим маршрутом.')
 
             if price_city < price_yandex:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейди в приложение Ситимобил](http://onelink.to/5m3naz)'.format(
                         price_yandex, float(price_city)), parse_mode='Markdown', reply_markup=reply_markup)
+                update.message.reply_text(text)
             else:
                 update.message.reply_text(
                     'Цена в Яндекс.Такси: {}. Цена в Ситимобил: {}. [Перейди в приложение Яндекс.Такси](https://3.redirect.appmetrica.yandex.com/route?utm_source=serp&utm_medium=org&start-lat={}&start-lon={}&end-lat={}&end-lon={}&ref=402d5282d269410b9468ae538389260b&appmetrica_tracking_id=1178268795219780156)'.format(
                         price_yandex, float(price_city), from_lat_location, from_long_location, to_lat_location,
                         to_long_location), parse_mode='Markdown', reply_markup=reply_markup)
+                update.message.reply_text(text)
 
         return SELECT
     except Exception as ex:
@@ -247,7 +260,14 @@ def select(bot, update, user_data):
 # Просит пользователя ввести цену, за которую тот хочет отправиться в путь.
 def start_price(bot, update, user_data):
     command = update.message.text
-    if command == 'Выход':
+    price_yandex = user_data['price_yandex']
+    price_city = user_data['price_city']
+
+    if price_city < float(command) or price_yandex < float(command):
+        update.message.reply_text(
+            'Введенная цена больше той, за которую можно поехать. Воспользуйся предложенным такси.')
+
+    elif command == 'Выход':
         start_button = KeyboardButton('Старт')
         reply_markup = ReplyKeyboardMarkup([[start_button]],
                                            resize_keyboard=True,
@@ -258,6 +278,7 @@ def start_price(bot, update, user_data):
 
     elif not command.isdigit():
         update.message.reply_text('Цену нужно ввести цифрами, а не буквами!')
+
     else:
         from_long = user_data['from_long']
         from_lat = user_data['from_lat']
