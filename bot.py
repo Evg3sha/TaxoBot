@@ -271,7 +271,6 @@ def start_price(bot, update, user_data):
         update.message.reply_text(
             'Введенная цена больше той, за которую можно поехать. Воспользуйся предложенным такси.',
             reply_markup=reply_markup)
-        return ConversationHandler.END
 
     elif command == 'Выход':
         start_button = KeyboardButton('Старт')
