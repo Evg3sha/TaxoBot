@@ -272,7 +272,7 @@ def start_price(bot, update, user_data):
             'Введенная цена больше той, за которую можно поехать. Воспользуйся предложенным такси.',
             reply_markup=reply_markup)
 
-    elif command == 'Выход':
+    if command == 'Выход':
         start_button = KeyboardButton('Старт')
         reply_markup = ReplyKeyboardMarkup([[start_button]],
                                            resize_keyboard=True,
